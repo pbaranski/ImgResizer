@@ -1,85 +1,64 @@
-import javax.swing.*;
 import java.io.File;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Date;
 import java.util.HashMap;
 
 
 public class Main {
 
     public static void main(String[] args) throws InterruptedException {
-        log("Start");
+        long start = System.currentTimeMillis();
+
+        System.out.println("Start");
         String filePath;
         String filePathSave;
+        int threadsCount;
+        int imgHeight;
+        int imgWidth;
+        HashMap<File, String> filesMap;
 
+        Panel panel = new Panel();
+        panel.addPanel();
 
-        JTextField xField = new JTextField(5);
-        JTextField yField = new JTextField(5);
+        filePath = panel.readPath;
+        filePathSave = panel.writePath + "\\";
 
-        JPanel myPanel = new JPanel();
-        myPanel.add(new JLabel("x:"));
-        myPanel.add(xField);
-        myPanel.add(new JLabel("y:"));
-        myPanel.add(yField);
+        imgHeight = Integer.parseInt(panel.resolution.substring(0, (panel.resolution.indexOf("x"))));
+        imgWidth = Integer.parseInt(panel.resolution.substring((panel.resolution.indexOf("x") + 1)));
+        threadsCount = panel.threadsNum;
 
-        int result = JOptionPane.showConfirmDialog(null, myPanel,
-                "Please Enter X and Y Values", JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.OK_OPTION) {
-            System.out.println("x value: " + xField.getText());
-            System.out.println("y value: " + yField.getText());
-        }
+        FileManager fm = new FileManager();
 
+        //TEST
+        filePath = ("D:\\test1");
+        filePathSave = ("D:\\test2\\");
+        fm.clearDirectory(filePathSave);
+        //TEST
 
-
-
-
-
-        //filePath = JOptionPane.showInputDialog(null, "Podaj scieżke do pliku");
-        filePath = ("D:\\test");
-        filePathSave = ("D:\\test2");
-
-        log(filePath);
-
-        HashMap<File, String> filesMap = new HashMap<File, String>();
-        File[] files = new File(filePath).listFiles();
-        for (File file : files){
-            if(file.isFile()){
-                filesMap.put(file, "raw");
-            }
-        }
-
-       log("Czy mapa jest pusta " + filesMap.isEmpty());
-
-       log("Next iterator " + filesMap.keySet().iterator().next());
-
-        try {
-
-        File[] files2 = new File(filePathSave).listFiles();
-        for (File f: files2) f.delete();
-        }  catch (NullPointerException e){
-
-        }
-
-       // new File("/path/directory").mkdirs();
-
-      //---------------------------------------------------------------------------------------------------------
-
-
-        final int resizerCount = 5;
-
+        filesMap = fm.readFilesInDirectory(filePath);
         final Gallery gal = new Gallery(filesMap);
 
-        Thread resizers[] = new Thread[resizerCount];
-        for (int i = 0; i < resizerCount; i++) resizers[i] = new Thread(new Resizer(gal, i));
+        Thread resizers[] = new Thread[threadsCount];
+        for (int i = 0; i < threadsCount; i++)
+            resizers[i] = new Thread(new Resizer(gal, i, filePathSave, imgWidth, imgHeight));
 
+        for (Thread t : resizers) t.start();
+        for (Thread t : resizers) t.join();
 
-        for (Thread t: resizers)t.start();
-        for (Thread t: resizers)t.join();
+        long end = System.currentTimeMillis();
+        NumberFormat formatter = new DecimalFormat("#0.00000");
+        System.out.print("Execution time is " + formatter.format((end - start) / 1000d) + " seconds");
 
+        fm.log("    ------------------------------    ");
+        fm.log("Test date: " + new Date());
+        fm.log("Files to resize: " + fm.fileCounter(filePath));
+        fm.log("Files to resize: " + fm.fileCounter(filePathSave));
+        fm.log("Size: " + imgHeight + " x " + imgWidth);
+        fm.log("Threads: " + threadsCount);
+        fm.log("Execution time is " + formatter.format((end - start) / 1000d) + " seconds");
 
     }
 
-
-    public static void log(String mes){
-        System.out.println(mes);
-    }
 
 }
