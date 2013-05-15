@@ -1,13 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
 
-/**
- * Created with IntelliJ IDEA.
- * User: A
- * Date: 15.05.13
- * Time: 20:25
- * To change this template use File | Settings | File Templates.
- */
 public class Panel {
     String readPath;
     String writePath;
